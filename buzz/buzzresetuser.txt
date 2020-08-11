@@ -1,0 +1,24 @@
+{{/*starts with: !buzzresetuser
+requires mod */}}
+{{$mention := ""}}  {{$mId := 0}}  {{$done := 0}}
+{{if ge (len .Args) 2}}
+  {{$mention = (index .CmdArgs 0)}}
+  {{$mId = (toInt64 (userArg $mention).ID) }}
+  {{if eq $mId 0}}⚠️ {{$mention}} is not a valid user{{end}}
+  {{$mention = joinStr "" "<@" (toString $mId) ">" }}
+{{else}}
+  Command syntax:
+  `!resetbuzzuser @usermention`
+  {{$done = 1}}
+{{end}}
+{{if eq $done 0}}
+  {{if eq $mId  0}}
+    {{$done = 1}}
+  {{end}}
+{{end}}
+{{if eq $done 0}}
+    {{$key := joinStr "" "counter_tracker_"  $mId}}
+	{{dbSet 118 $key 0}}
+    {{$count:= dbGet 118 $key}}
+    {{joinStr "" "<@" ($mId) ">"}}'s buzz score is {{$count.Value}}.
+{{end}} 

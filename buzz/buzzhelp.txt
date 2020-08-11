@@ -1,0 +1,26 @@
+{{/*starts with: !buzzhelp
+runs everywhere, by anyone */}}
+
+**Buzz** is a counting game.
+
+Each person takes a turn saying the next number in sequence:
+1, 2, 3, etc.
+When you reach 7, or a number that's multiple of 7, such as 14, 28, etc.
+Or, if the number itself has a 7 in it, such as 17, 27, 37, etc.
+then you should say "buzz" instead of the number itself.
+Example: 1, 2, 3, 4, 5, 6, buzz, 8, 9, 10, 11, 12, 13, buzz, 15, 16, buzz, 18, 19, 20, buzz
+
+Also, you can't say buzz unless it's time to say buzz.
+
+Scoring:
+- You get 7 points each time you say the right number (or buzz)
+-   If someone else didn't have a turn, and you played again, then you get 1 point.
+- You get 70 points deducted when you say buzz at the wrong time, or don't say buzz when you should.
+
+Type:
+`!buzzhelp` this help.
+`!nextnumber` to see what the next number should be.
+`!buzzscore` to get your buzz score (or specify user name)
+`!buzztop` list top 10.
+`!buzzresetcounter` admins can reset the game counter back to 1.
+`!buzzresetuser` admins can reset a user's score back to 0.

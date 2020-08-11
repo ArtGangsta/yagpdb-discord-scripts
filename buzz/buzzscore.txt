@@ -1,0 +1,22 @@
+{{/*starts with: !buzzscore
+runs everywhere, by anyone */}}
+{{$mention := ""}}  {{$mId := 0}}  {{$done := 0}}
+{{if ge (len .Args) 2}}
+  {{$mention = (index .CmdArgs 0)}}
+  {{$mId = (toInt64 (userArg $mention).ID) }}
+  {{if eq $mId 0}}⚠️ {{$mention}} is not a valid user{{end}}
+  {{$mention = joinStr "" "<@" (toString $mId) ">" }}
+{{end}}
+{{if eq $done 0}}
+  {{if eq $mId  0}}
+    {{$mId = (.User.ID)}}
+  {{end}}
+{{end}}
+
+{{$key := joinStr "" "counter_tracker_"  $mId}}
+{{$count:= dbGet 118 $key}}
+{{if $count}}
+  {{joinStr "" "<@" ($mId) ">"}}'s buzz score is {{$count.Value}}.
+{{else}}
+  {{joinStr "" "<@" ($mId) ">"}} has't played yet
+{{end}}

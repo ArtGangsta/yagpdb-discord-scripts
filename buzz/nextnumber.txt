@@ -1,0 +1,4 @@
+{{/*starts with: !nextnumber
+runs everywhere, by anyone */}}
+{{$next := dbGet 118 "counter_count"}}
+Next number is:  {{($next.Value)}}

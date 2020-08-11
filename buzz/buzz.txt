@@ -1,0 +1,120 @@
+{{/* Trigger type: Regex, Trigger: ^(buzz|\d+)
+Only run in a certain channel */}}
+{{/* First time running command, set up initial values*/}}
+{{$lastUser := dbGet 118 "counter_user"}}
+{{if $lastUser}}
+{{else}}
+  {{dbSet 118 "counter_user" 0}}
+  {{dbSet 118 "counter_count" "1"}}
+{{end}}
+
+{{$done := 0}}
+{{$is0 := (eq (toInt .Cmd) 0)}}
+{{$isbuzz := (eq (lower .Cmd) "buzz")}}
+{{/* is0: {{$is0}} */}}
+{{/* isbuzz: {{$isbuzz}} */}}
+{{$regText := (and $is0 (not $isbuzz))}}
+{{/* regText: {{$regText}} */}}
+{{if $regText}}{{$done = 1}}{{end}}
+
+{{$out := ""}}
+{{$points := 0}}
+{{$playedAgain := 0}}
+
+{{/* This is currently turned off */}}
+{{/* OPTIONAL: this is just to prevent one person to type all the numbers themselves */}}
+{{/* If current user ID matches the user who last successfully ran command */}}
+{{if eq $done 0}}
+	{{if eq (toFloat $lastUser.Value) (toFloat .User.ID)}}
+		{{/* print "give someone else a turn" */}}
+		{{$playedAgain = 1}}
+		{{/* {{$done = 1}} */}}
+	{{end}}
+{{end}}
+
+{{$today := (joinStr "." (toString currentTime.Year) (currentTime.Month) (toString currentTime.Day))}}
+{{/* $today = "2020.July.25" */}}
+
+{{$x := (dbGet 118 "buzz")}}
+{{if not $x}}
+	{{ $lbuzzdb := sdict }}
+	{{ $lbuzzdb.Set "lastdate" $today }}
+	{{dbSet 118 "buzz" $lbuzzdb }}
+    {{$x = (dbGet 118 "buzz")}}
+{{end}}
+{{$buzzdb := sdict $x.Value }}
+{{$lastdate := ($buzzdb.Get "lastdate")}}
+
+{{$inext := 0}}
+{{if eq $done 0}}
+	{{$next := dbGet 118 "counter_count"}}
+	{{$inext = (toInt ($next.Value))}}
+	{{$snext := (toString ($inext))}}
+
+	{{$divs := 0}}{{if eq 0 (toInt (mod $inext 7))}}{{$divs = 1}}{{end}}
+	{{$div7 := 0}}{{range seq 0 (len $snext)}}{{$ctext := index $snext . }}{{if eq $ctext 55}}{{$div7 = 1}}{{end}}{{end}}
+	{{$buzz := 0}}{{if or (eq $divs 1) (eq $div7 1)}}{{$buzz = 1}}{{end}}
+
+	{{if and (eq $buzz 0) $isbuzz}}
+		{{$out = "You said BUZZ, but next number is not BUZZ! 🤦‍♀️"}}
+		{{$points = (mult -1 70)}}
+		{{$done = 1}}
+	{{end}}
+	{{if and (eq $buzz 1) (not $isbuzz)}}
+		{{$out = "Next number is BUZZ but you didn't say BUZZ! 🙄"}}
+		{{$points = (mult -1 70)}}
+		{{$done = 1}}
+	{{end}}
+{{end}}
+
+{{if eq $done 0}}
+	{{if (or $isbuzz (eq (toInt .Cmd) $inext))}}
+		{{dbSet 118 "counter_count" (add $inext 1)}}
+        {{dbSet 118 "counter_user" (toString .User.ID)}}
+
+		{{$name := (add $inext 1)}}
+		{{editChannelName .Channel.ID (joinStr "" "🍺buzz-" $name )}}
+
+		{{if eq $playedAgain 1}}
+		    {{$points = 1}}
+            {{addReactions "👍🏻"}}
+		{{else}}
+            {{$points = 7}}
+            {{addReactions "👍"}}
+		{{end}}
+	{{else}}
+		{{if ne (toInt .Cmd) 0}}
+			That is not the next number! 😕 (hint: Type: `!nextnumber`)
+		{{end}}
+	{{end}}
+{{end}}
+
+{{if ne $points 0}}
+	{{$key := joinStr "" "counter_tracker_"  .User.ID}}
+	{{$userCount := dbGet 118 $key}}
+	{{$newScore := $points}}
+	{{if $userCount}}
+	    {{$newScore = (add (toInt ($userCount.Value)) $points)}}
+	{{end}}
+	{{dbSet 118 $key $newScore}}
+	{{if lt $points 0}}
+		{{$out = (joinStr "" $out "\n" $points " deducted.  <@" (.User.ID) ">'s new score: " $newScore)}}
+	{{end}}
+{{end}}
+
+{{if gt (len $out) 0}}
+  {{print $out}}
+{{end}}
+
+{{/*
+{{if ne $lastdate $today}}
+  {{$next := dbGet 118 "counter_count"}}
+  {{if ne (toInt $next.Value) 1}}
+    {{dbSet 118 "counter_count" "1"}}
+    {{$next := dbGet 118 "counter_count"}}
+It's a new day.
+Buzz counter reset.  Next number is:  {{($next.Value)}}
+  {{end}}
+{{end}}  */}}
+{{$buzzdb.Set "lastdate" $today }}
+{{dbSet 118 "buzz" $buzzdb }}

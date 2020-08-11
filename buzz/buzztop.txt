@@ -1,0 +1,26 @@
+{{/*starts with: !buzztop
+runs everywhere, by anyone */}}
+{{$sb := "**Buzz - Top 10**\n"}}{{$cnt := 0}}
+{{$hos := dbTopEntries "counter_tracker_%" 10 0}}{{range $hos}}{{$cnt = (add $cnt 1)}}
+  {{$mid := (index (split .Key "_") 2)}}
+  {{$m := (getMember $mid)}}
+  {{$u := ""}}
+  {{if $m}}
+    {{$u = $m.Nick}}
+    {{if not $u}}{{$u = (joinStr "" $m.User.Username "*#" $m.User.Discriminator "*" )}}{{end}}
+  {{else}}
+    {{$u = (joinStr "" "<@" $mid "> (not a member)")}}
+  {{end}}
+  {{$sb = (joinStr "" $sb $cnt " - " $u ":  **" (toInt .Value) "**\n")}}
+{{else}}
+{{$sb = "none"}}
+{{end}}
+    {{$embed := cembed 
+    "title" "Buzz - Top Scores"
+    "color" 4645612 
+    "fields" (cslice 
+        (sdict "name" "Who's awesome" "value" $sb "inline" false)
+        )
+    }}
+    {{/* sendMessage nil $embed */}}
+{{$sb}}

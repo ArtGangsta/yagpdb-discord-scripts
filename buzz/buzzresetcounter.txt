@@ -1,0 +1,5 @@
+{{/*starts with: !buzzresetcounter
+requires mod */}}
+{{dbSet 118 "counter_count" "1"}}
+{{$next := dbGet 118 "counter_count"}}
+Buzz counter reset.  Next number is:  {{($next.Value)}}
